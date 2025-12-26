@@ -370,61 +370,28 @@ class DataCollector:
         title = article.get('title', '').lower()
         description = article.get('description', '').lower()
         combined = title + ' ' + description
-        
+    
         score = 0
-
-       # Tier 1: Direct XAUUSD/Gold mentions (5 points each)
-        tier1_keywords = ['xauusd', 'xau/usd', 'gold price', 'gold futures', 
-                        'gold rally', 'gold falls', 'gold drops', 'gold surges',
-                        'spot gold', 'gold market']
+    
+        # Tier 1: Direct gold mentions (8 points) - INCREASED
+        tier1_keywords = ['gold', 'xauusd', 'xau/usd', 'gold price', 'gold futures']
         for keyword in tier1_keywords:
             if keyword in combined:
-                score += 5
-                break  # Only count once
-        
-        # Tier 2: Gold-related (3 points)
-        tier2_keywords = ['gold', 'bullion', 'precious metal']
-        for keyword in tier2_keywords:
-            if keyword in combined:
-                score += 3
+                score += 8  # Was 5, now 8
                 break
-        
-        # Tier 3: Market drivers (2 points each, can stack)
-        tier3_keywords = ['federal reserve', 'fed rate', 'fed cut', 'fed hike',
-                        'powell', 'inflation', 'cpi', 'treasury yield',
-                        'dollar strength', 'dollar weakness', 'safe haven']
-        for keyword in tier3_keywords:
-            if keyword in combined:
-                score += 2
-        
-        # Tier 4: General forex/economy (1 point)
-        tier4_keywords = ['dollar', 'usd', 'forex', 'currency']
-        if any(keyword in combined for keyword in tier4_keywords):
-            score += 1
-        
-        # Bonus for recency (within 12 hours = +3 points)
-        try:
-            published = article.get('published', '')
-            if published:
-                # Handle different date formats
-                pub_time = None
-                for fmt in ['%Y-%m-%dT%H:%M:%SZ', '%Y-%m-%dT%H:%M:%S%z', '%Y-%m-%d %H:%M:%S']:
-                    try:
-                        pub_time = datetime.strptime(published.replace('Z', '+0000'), fmt.replace('Z', '%z'))
-                        break
-                    except:
-                        continue
-                
-                if pub_time:
-                    hours_ago = (datetime.now(pub_time.tzinfo) - pub_time).total_seconds() / 3600
-                    if hours_ago < 12:
-                        score += 3
-                    elif hours_ago < 24:
-                        score += 1
-        except Exception as e:
-            pass  # Ignore date parsing errors
-        
-        return min(score, 15)  # Cap at 15
+    
+        # Tier 2: Strong market drivers (4 points)
+        tier2_keywords = ['federal reserve', 'fed rate', 'fed cut', 'fed hike',
+                      'powell', 'inflation', 'cpi', 'treasury yield']
+        if any(keyword in combined for keyword in tier2_keywords):
+            score += 4  # Was 2, now 4
+    
+        # Tier 3: General forex (2 points)
+        tier3_keywords = ['dollar', 'usd', 'forex', 'currency', 'bullion']
+        if any(keyword in combined for keyword in tier3_keywords):
+            score += 2  # Was 1, now 2
+    
+        return min(score, 15)
 
     # ECONOMIC CALENDAR EVENTS FROM FMP
     # def get_economic_calendar(self):
