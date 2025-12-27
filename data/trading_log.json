@@ -1,0 +1,26 @@
+[
+  {
+    "timestamp": "2025-12-27T22:01:04.153496",
+    "analysis_id": "intraday_1_1766869258",
+    "analysis": {
+      "mode": "intraday",
+      "session": "NEW_YORK",
+      "trade_recommendation": "NO TRADE",
+      "confidence": 5,
+      "market_bias": "NEUTRAL",
+      "bias_strength": 4,
+      "risk_level": "HIGH",
+      "current_price": 4532.69019,
+      "stop_loss": null,
+      "take_profit_1": null,
+      "take_profit_2": null,
+      "key_factors": [
+        "Current price is trading very close to the 20-period SMA, indicating a lack of clear directional momentum.",
+        "Recent trend is described as \"neutral,\" reinforcing the indecisive market environment.",
+        "High relevance news items are related to investment funds and their positions in gold trusts, which may provide underlying support but lack immediate directional impetus for intraday trading."
+      ],
+      "invalidation": "A clear break above $4545 with sustained buying pressure, or a decisive break below $4520 with increasing selling volume, would establish a directional bias. However, given the current neutral state and lack of clear technical signals, waiting for such confirmation is prudent."
+    },
+    "market_summary": {}
+  }
+]

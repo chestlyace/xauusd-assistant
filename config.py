@@ -230,3 +230,40 @@ ANALYSIS_MODE = 'intraday'  # 'scalping' or 'intraday'
 # Alert thresholds
 CONFIDENCE_THRESHOLD = 6  # Minimum confidence for alerts
 SCALPING_CONFIDENCE_THRESHOLD = 7  # Higher bar for scalping
+
+
+# === SCHEDULING SETTINGS ===
+UPDATE_INTERVAL_MINUTES = 15  # How often to analyze (15, 30, 60)
+RUN_MODE = 'continuous'  # 'continuous' or 'once'
+
+# Trading hours (24/5 forex market)
+TRADING_ACTIVE = True  # Set to False to pause all analysis
+TRADING_DAYS = [0, 1, 2, 3, 4]  # Monday=0 to Friday=4 (forex closed weekends)
+
+# === ALERT SETTINGS ===
+ALERT_METHODS = ['console', 'file']  # Options: 'console', 'file', 'email', 'telegram'
+
+
+# === LOGGING SETTINGS ===
+LOG_ALL_ANALYSES = True  # Log every analysis (not just alerts)
+LOG_FILE = f'{DATA_DIR}/trading_log.json'
+PERFORMANCE_LOG = f'{DATA_DIR}/performance_log.json'
+
+# === DATA PERSISTENCE ===
+SAVE_MARKET_DATA = True  # Save raw market data for review
+MARKET_DATA_FILE = f'{DATA_DIR}/market_data_history.json'
+
+# For Email
+EMAIL_ENABLED = False
+EMAIL_FROM = "your_email@gmail.com"
+EMAIL_PASSWORD = "your_app_password"  # Use Gmail App Password
+EMAIL_TO = "your_phone@carrier.com"  # For SMS via email
+
+# Telegram alerts (if enabled)
+TELEGRAM_ENABLED = True
+TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', '')
+TELEGRAM_CHAT_ID = os.getenv('TELEGRAM_CHAT_ID', '')
+
+
+
+ALERT_METHODS = ['console', 'file', 'email', 'telegram']

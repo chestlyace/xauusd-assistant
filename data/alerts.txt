@@ -1,0 +1,226 @@
+
+============================================================
+🔔 XAUUSD BUY Signal
+Time: 2025-12-26T12:44:02.679632
+============================================================
+
+============================================================
+🚨 XAUUSD TRADING SIGNAL
+============================================================
+
+Mode: INTRADAY
+Signal: BUY
+Confidence: 7/10
+Current Price: $4510.50
+Session: LONDON
+Risk Level: MEDIUM
+
+Market Bias: BULLISH (Strength: 8/10)
+
+--- TRADE SETUP ---
+Entry: ~$4510.50
+Stop Loss: $4500.00 (Risk: $10.50)
+Target 1: $4530.00 (Reward: $19.50, R:R 1.86)
+Target 2: $4550.00
+
+--- KEY FACTORS ---
+• Strong bullish momentum above SMA20
+• Breaking key resistance at $4505
+• Positive USD weakness supporting gold
+
+--- INVALIDATION ---
+Break below $4500 would invalidate the setup
+
+Analysis ID: test_123
+Timestamp: 2025-12-26T12:44:02.679287
+============================================================
+
+
+============================================================
+⚠️ XAUUSD Analyzer Error
+Time: 2025-12-26T12:44:02.679791
+============================================================
+
+============================================================
+⚠️ ANALYZER ERROR
+============================================================
+
+Error: API rate limit exceeded
+Timestamp: 2025-12-26T12:44:02.679696
+
+This may require attention. Check logs for details.
+============================================================
+
+
+
+[2025-12-26T12:44:02.679868] Startup: System started successfully
+
+============================================================
+🔔 XAUUSD BUY Signal
+Time: 2025-12-26T16:09:00.093314
+============================================================
+
+============================================================
+🚨 XAUUSD TRADING SIGNAL
+============================================================
+
+Mode: INTRADAY
+Signal: BUY
+Confidence: 7/10
+Current Price: $4510.50
+Session: LONDON
+Risk Level: MEDIUM
+
+Market Bias: BULLISH (Strength: 8/10)
+
+--- TRADE SETUP ---
+Entry: ~$4510.50
+Stop Loss: $4500.00 (Risk: $10.50)
+Target 1: $4530.00 (Reward: $19.50, R:R 1.86)
+Target 2: $4550.00
+
+--- KEY FACTORS ---
+• Strong bullish momentum above SMA20
+• Breaking key resistance at $4505
+• Positive USD weakness supporting gold
+
+--- INVALIDATION ---
+Break below $4500 would invalidate the setup
+
+Analysis ID: test_123
+Timestamp: 2025-12-26T16:09:00.093120
+============================================================
+
+
+============================================================
+⚠️ XAUUSD Analyzer Error
+Time: 2025-12-26T16:09:00.093500
+============================================================
+
+============================================================
+⚠️ ANALYZER ERROR
+============================================================
+
+Error: API rate limit exceeded
+Timestamp: 2025-12-26T16:09:00.093419
+
+This may require attention. Check logs for details.
+============================================================
+
+
+
+[2025-12-26T16:09:00.093572] Startup: System started successfully
+
+============================================================
+🔔 XAUUSD BUY Signal
+Time: 2025-12-26T16:43:02.079085
+============================================================
+
+============================================================
+🚨 XAUUSD TRADING SIGNAL
+============================================================
+
+Mode: INTRADAY
+Signal: BUY
+Confidence: 7/10
+Current Price: $4510.50
+Session: LONDON
+Risk Level: MEDIUM
+
+Market Bias: BULLISH (Strength: 8/10)
+
+--- TRADE SETUP ---
+Entry: ~$4510.50
+Stop Loss: $4500.00 (Risk: $10.50)
+Target 1: $4530.00 (Reward: $19.50, R:R 1.86)
+Target 2: $4550.00
+
+--- KEY FACTORS ---
+• Strong bullish momentum above SMA20
+• Breaking key resistance at $4505
+• Positive USD weakness supporting gold
+
+--- INVALIDATION ---
+Break below $4500 would invalidate the setup
+
+Analysis ID: test_123
+Timestamp: 2025-12-26T16:43:02.078893
+============================================================
+
+
+============================================================
+⚠️ XAUUSD Analyzer Error
+Time: 2025-12-26T16:43:16.374559
+============================================================
+
+============================================================
+⚠️ ANALYZER ERROR
+============================================================
+
+Error: API rate limit exceeded
+Timestamp: 2025-12-26T16:43:16.374350
+
+This may require attention. Check logs for details.
+============================================================
+
+
+
+[2025-12-26T16:43:29.487273] Startup: System started successfully
+
+============================================================
+🔔 XAUUSD BUY Signal
+Time: 2025-12-26T17:05:56.967410
+============================================================
+
+============================================================
+🚨 XAUUSD TRADING SIGNAL
+============================================================
+
+Mode: INTRADAY
+Signal: BUY
+Confidence: 7/10
+Current Price: $4510.50
+Session: LONDON
+Risk Level: MEDIUM
+
+Market Bias: BULLISH (Strength: 8/10)
+
+--- TRADE SETUP ---
+Entry: ~$4510.50
+Stop Loss: $4500.00 (Risk: $10.50)
+Target 1: $4530.00 (Reward: $19.50, R:R 1.86)
+Target 2: $4550.00
+
+--- KEY FACTORS ---
+• Strong bullish momentum above SMA20
+• Breaking key resistance at $4505
+• Positive USD weakness supporting gold
+
+--- INVALIDATION ---
+Break below $4500 would invalidate the setup
+
+Analysis ID: test_123
+Timestamp: 2025-12-26T17:05:56.967201
+============================================================
+
+
+============================================================
+⚠️ XAUUSD Analyzer Error
+Time: 2025-12-26T17:06:04.098950
+============================================================
+
+============================================================
+⚠️ ANALYZER ERROR
+============================================================
+
+Error: API rate limit exceeded
+Timestamp: 2025-12-26T17:06:04.098227
+
+This may require attention. Check logs for details.
+============================================================
+
+
+
+[2025-12-26T17:06:05.409071] Startup: System started successfully
+
+[2025-12-27T21:53:37.359595] Status: Outside trading hours
