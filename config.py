@@ -14,7 +14,7 @@ FMP_API_KEY = os.getenv('FMP_API_KEY')
 
 # Trading Settings
 SYMBOL = "XAUUSD"
-UPDATE_INTERVAL = 900  # 15 minutes in seconds
+UPDATE_INTERVAL = 15  # 15 minutes in seconds
 TRADING_HOURS = {
     'start': '00:00',  # Forex is 24/5
     'end': '23:59'

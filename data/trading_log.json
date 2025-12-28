@@ -22,5 +22,53 @@
       "invalidation": "A clear break above $4545 with sustained buying pressure, or a decisive break below $4520 with increasing selling volume, would establish a directional bias. However, given the current neutral state and lack of clear technical signals, waiting for such confirmation is prudent."
     },
     "market_summary": {}
+  },
+  {
+    "timestamp": "2025-12-28T09:55:47.746467",
+    "analysis_id": "intraday_1_1766912142",
+    "analysis": {
+      "mode": "intraday",
+      "session": "LONDON",
+      "trade_recommendation": "NO TRADE",
+      "confidence": 4,
+      "market_bias": "NEUTRAL",
+      "bias_strength": 4,
+      "risk_level": "HIGH",
+      "current_price": 4532.69019,
+      "stop_loss": null,
+      "take_profit_1": null,
+      "take_profit_2": null,
+      "key_factors": [
+        "Current price is hovering very close to the SMA 20, indicating a lack of clear directional momentum.",
+        "Recent trend is described as \"neutral\", reinforcing the indecisive market environment.",
+        "High relevance news regarding AI gold rush and Costco membership deals, while not directly impacting XAUUSD, suggest potential market shifts or distractions. However, the news on Trump tariffs and Bitcoin price slips could introduce broader risk-off sentiment indirectly."
+      ],
+      "invalidation": "A clear break and sustained move above $4545 (resistance) or below $4520 (support) with increased volatility and volume would signal a directional bias. The proximity to the SMA 20 and neutral trend makes any immediate trade recommendation premature."
+    },
+    "market_summary": {}
+  },
+  {
+    "timestamp": "2025-12-28T09:58:15.412734",
+    "analysis_id": "intraday_1_1766912290",
+    "analysis": {
+      "mode": "intraday",
+      "session": "LONDON",
+      "trade_recommendation": "NO TRADE",
+      "confidence": 4,
+      "market_bias": "NEUTRAL",
+      "bias_strength": 3,
+      "risk_level": "HIGH",
+      "current_price": 4532.69019,
+      "stop_loss": null,
+      "take_profit_1": null,
+      "take_profit_2": null,
+      "key_factors": [
+        "Price is trading just above the SMA20, indicating minimal directional momentum.",
+        "Recent trend is described as neutral.",
+        "High relevance news events are present and may influence short-term volatility."
+      ],
+      "invalidation": "The absence of clear directional momentum and the presence of high-relevance news events prevent the establishment of a confident trade setup."
+    },
+    "market_summary": {}
   }
 ]

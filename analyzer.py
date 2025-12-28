@@ -6,21 +6,36 @@ import google.generativeai as genai
 from config import *
 
 class MarketAnalyzer:
-    def __init__(self, analysis_mode='intraday'):
+    def __init__(self, analysis_mode='intraday', timeframe='M15'):
         """Initialize the AI analyzer with Gemini
         
         Args:
             analysis_mode: 'scalping' (M1-M15) or 'intraday' (H1-H4)
+            timeframe: 'M1', M3, 'M5', 'M15', M30, 'H1', 'H4', 'D1'
         """
         genai.configure(api_key=GEMINI_API_KEY)
         # Use latest stable model - better structured output adherence
         self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
         self.analysis_count = 0
-        self.analysis_mode = analysis_mode.lower()
+        self.timeframe = timeframe.upper()
+        self.analysis_mode = self._determine_mode(analysis_mode, self.timeframe)
         
-        if self.analysis_mode not in ['scalping', 'intraday']:
-            raise ValueError("analysis_mode must be 'scalping' or 'intraday'")
-    
+    def _determine_mode(self,mode, timeframe):
+        if mode.lower() in ['ultra_scalping', 'scalping', 'intraday', 'swing']:
+            return mode.lower()
+
+        if timeframe in ['M1', 'M3', 'M5']:
+            return 'ultra_scalping'
+        elif timeframe in ['M15', 'M30']:
+            return 'scalping'
+        elif timeframe in ['H1', 'H4']:
+            return 'intraday'
+        elif timeframe in ['D1']:
+            return 'swing'
+        else:
+            return 'intraday'  # Default
+        
+        
     def get_trading_session(self):
         """Determine current trading session (Gold is session-sensitive)"""
         utc_now = datetime.now(pytz.UTC)
@@ -39,9 +54,17 @@ class MarketAnalyzer:
     def get_system_prompt(self):
         """Get mode-specific system prompt with strict definitions"""
         
-        base_prompt = """You are an expert XAUUSD (Gold/USD) trader specializing in technical analysis and risk management.
+        base_prompt = """You are a professional XAUUSD (Gold/USD) trader with deep expertise in technical analysis, market structure, and risk management.
 
+Your task is to analyze the provided market data and produce a STRICTLY STRUCTURED trading assessment.
 Your analysis MUST follow this EXACT structure with machine-readable fields:
+
+You MUST follow the EXACT format below.
+Do NOT add commentary outside the defined fields.
+Do NOT change field names.
+Do NOT omit any field.
+
+================ ANALYSIS FORMAT ================
 
 ---ANALYSIS START---
 
@@ -57,40 +80,89 @@ Key Factors:
 - Factor 3
 
 Technical Setup:
-[Brief technical analysis]
+[Concise, factual technical explanation based ONLY on provided data]
 
 Entry Strategy:
-[Specific entry criteria or "N/A" if NO TRADE]
+[Clear entry logic with specific conditions, or "N/A" if NO TRADE]
 
 Risk Management:
-Stop Loss: [price level or "N/A"]
-Take Profit 1: [price level or "N/A"]
-Take Profit 2: [price level or "N/A"]
+Stop Loss: [specific price OR "N/A"]
+Take Profit 1: [specific price OR "N/A"]
+Take Profit 2: [specific price OR "N/A"]
 Risk Level: [LOW / MEDIUM / HIGH]
 
 Invalidation:
-[What would invalidate this setup]
+[Clear condition that would invalidate this setup]
 
 ---ANALYSIS END---
 
-FIELD DEFINITIONS (Read Carefully):
-• Bias Strength measures directional conviction (how strong is the trend/momentum)
-• Confidence Score measures trade execution quality and safety (how good is the setup)
-• High bias does NOT guarantee high confidence
-• Example: Strong uptrend (Bias 9) but choppy price action (Confidence 4) = NO TRADE
+================ FIELD DEFINITIONS ================
 
-CRITICAL RULES:
-1. If there is no clear edge, you MUST output "Trade Recommendation: NO TRADE"
-2. If Confidence Score < 6, you MUST output "Trade Recommendation: NO TRADE"
-3. Never guess or force a trade when conditions are unclear
-4. All price levels must be specific numbers (e.g., "4475.50"), never ranges or "N/A" for active trades
-5. Be brutally honest about uncertainty
-6. NO TRADE is a valid and often correct recommendation
+• Market Bias:
+  Directional expectation of price movement (up, down, or neutral)
+
+• Bias Strength (1–10):
+  Measures directional conviction and momentum strength
+
+• Confidence Score (1–10):
+  Measures trade quality, clarity, and execution safety
+  (structure, volatility, liquidity, risk clarity)
+
+IMPORTANT:
+High Bias Strength does NOT imply high Confidence.
+Example:
+- Bias Strength: 9 (strong trend)
+- Confidence Score: 4 (choppy price / poor structure)
+→ Trade Recommendation MUST be NO TRADE
+
+================ CRITICAL RULES ================
+
+1. If there is no clear, objective edge → Trade Recommendation MUST be NO TRADE
+2. If Confidence Score < 6 → Trade Recommendation MUST be NO TRADE
+3. NEVER force a trade to be helpful
+4. NEVER guess missing information
+5. All price levels MUST be exact numbers (e.g., 4475.50)
+6. NEVER use ranges, approximations, or vague terms
+7. If Trade Recommendation is BUY or SELL:
+   - Stop Loss and Take Profit 1 are REQUIRED
+8. NO TRADE is a valid, professional outcome and is often correct
+9. Be precise, conservative, and honest about uncertainty
+
+
 """
 
-        if self.analysis_mode == 'scalping':
+        if self.analysis_mode == 'ultra_scalping':
+            mode_specific = f"""
+ANALYSIS MODE: ULTRA SCALPING ({self.timeframe} timeframe)
+
+Your focus:
+- EXTREMELY short-term (next 3-20 minutes max)
+- Micro price movements ($0.50-$3 range)
+- Very tight stops (0.02-0.10% of price, typically $1-$4)
+- Quick in and out (hold 3-15 minutes typical)
+- Entry within $0.50-$1.50 of current price
+- Take profits should be 1:1.5 to 1:2 R:R minimum
+- NO TRADE if spread > $0.50
+- NO TRADE during news events or announcements
+- NO TRADE if volatility is too low (choppy) or too high (erratic)
+- Only trade during peak liquidity (London/NY sessions)
+- During ASIA session: be EXTREMELY selective (spread wider, liquidity lower)
+- HIGH risk level in ultra scalping = almost always NO TRADE
+
+Ultra Scalping Requirements:
+- Price must be making clear directional moves (not ranging)
+- Need immediate momentum in your favor
+- Exit quickly if setup doesn't work in 5-10 minutes
+- Spread and execution costs are critical at this timeframe
+"""
+
+        elif self.analysis_mode == 'scalping':
             mode_specific = """
 ANALYSIS MODE: SCALPING (M1-M15 timeframes)
+Timeframes: M1 – M15
+
+PRIMARY OBJECTIVE:
+Short-term execution precision and capital protection.
 
 Your focus:
 - Immediate price structure (support/resistance within $5-10 range)
@@ -100,6 +172,9 @@ Your focus:
 - DO NOT provide long-term predictions
 - DO NOT reference macro news unless it's happening RIGHT NOW
 - Focus on: order flow, micro structure, immediate momentum
+- Micro support and resistance ($5–10 zones)
+- Momentum and short-term order flow
+- Liquidity and spread conditions
 
 Scalping-specific requirements:
 - Entry levels must be within $2-5 of current price
@@ -110,10 +185,41 @@ Scalping-specific requirements:
 - Scalping is preferred during LONDON and NEW_YORK sessions
 - During low-liquidity sessions (ASIA, ASIA_LATE), be extremely selective
 - HIGH risk level in scalping mode should almost always = NO TRADE
+
+TIME HORIZON:
+- Next 15 minutes to 2 hours MAX
+- NO multi-session or long-term bias
+
+SCALPING RULES (MANDATORY):
+- Entry must be within $2–5 of current price
+- Stop Loss must be tight (≤ 0.3% of price)
+- Minimum Risk/Reward: 1 : 1.5
+- Avoid trades in choppy or ranging markets
+- If spread is elevated or liquidity is thin → NO TRADE
+- HIGH Risk Level in scalping mode almost always = NO TRADE
+
+SESSION GUIDANCE:
+- Preferred: LONDON and NEW YORK
+- During ASIA or late ASIA sessions:
+  - Be extremely selective
+  - If structure or momentum is unclear → NO TRADE
+
+NEWS HANDLING:
+- Ignore macro news unless it is IMMEDIATE and ACTIVE
+- If news impact is uncertain → NO TRADE
+
+ABSOLUTE PROHIBITIONS:
+- NO swing or long-term forecasts
+- NO macroeconomic speculation
+- NO overconfidence
 """
-        else:  # intraday
+        elif self.analysis_mode == 'intraday':
             mode_specific = """
 ANALYSIS MODE: INTRADAY (H1-H4 timeframes)
+Timeframes: H1 – H4
+
+PRIMARY OBJECTIVE:
+Structured intraday positioning with controlled risk.
 
 Your focus:
 - Intraday price structure (support/resistance within $20-50 range)
@@ -129,9 +235,54 @@ Intraday-specific requirements:
 - Take profits at daily highs/lows or key levels
 - If major news pending within 2 hours: consider NO TRADE
 - Session context matters but less critical than scalping
+
+TIME HORIZON:
+- Next 4 to 24 hours
+
+INTRADAY RULES:
+- Entry should be within $10–20 of current price
+- Stop Loss typically 0.5% – 1% of price
+- Targets should align with:
+  - Daily highs/lows
+  - Key intraday structure levels
+
+NEWS HANDLING:
+- Consider scheduled high-impact events
+- If major news is expected within 2 hours:
+  - Reduce confidence
+  - Or consider NO TRADE
+
+SESSION CONTEXT:
+- Important, but less restrictive than scalping
+- Trends may persist across sessions
+"""
+        else:  # swing
+            mode_specific = f"""
+ANALYSIS MODE: SWING TRADING ({self.timeframe} timeframe)
+
+Your focus:
+- Multi-day price structure (support/resistance within $40-$100 range)
+- Trend-based bias (next 1-5 days)
+- Holding through intraday noise
+- Wider stop losses (0.8-2% of price, typically $35-$90)
+- Entry levels within $15-40 of current price
+- Take profits at major technical levels or trend targets
+- Consider major economic events and trends
+- Focus on: daily/weekly levels, major trends, fundamentals
+- Less sensitive to intraday session changes
 """
 
         return base_prompt + mode_specific
+    
+    def estimate_spread(self, current_price):
+        """Rough spread estimation for gold (real spread needs broker API)"""
+        # Gold spread typically 0.2-0.5 during normal hours, wider during Asia
+        session = self.get_trading_session()
+        
+        if session in ['LONDON', 'NEW_YORK']:
+            return 0.30  # Tighter spread
+        else:
+            return 0.60  # Wider spread in Asia
     
     def estimate_spread(self, current_price):
         """Rough spread estimation for gold (real spread needs broker API)"""
@@ -203,52 +354,37 @@ Timestamp: {current['timestamp']}
     
     def analyze_market(self, market_data):
         """Send data to AI and get structured analysis"""
-        import time
-        
-        self.analysis_count += 1
-        analysis_id = f"{self.analysis_mode}_{self.analysis_count}_{int(datetime.now().timestamp())}"
-        
-        print(f"\nAnalyzing market (mode: {self.analysis_mode.upper()}, ID: {analysis_id})...")
-        
-        system_prompt = self.get_system_prompt()
-        market_context = self.format_market_context(market_data)
-        
-        full_prompt = f"{system_prompt}\n\n{market_context}"
-        
-        # Retry logic for 429 / Quota limits
-        max_retries = 5
-        retry_delay = 5
-        
-        for attempt in range(max_retries):
-            try:
-                # Get AI response
-                response = self.model.generate_content(full_prompt)
-                analysis_text = response.text
-                
-                # Parse into structured format
-                structured = self.parse_structured_output(analysis_text, market_data, analysis_id)
-                
-                if structured.get('success'):
-                    print(f"Analysis complete - Recommendation: {structured['trade_recommendation']}")
-                
-                return structured
-                
-            except Exception as e:
-                error_str = str(e)
-                if "429" in error_str or "Quota exceeded" in error_str:
-                    if attempt < max_retries - 1:
-                        wait = retry_delay * (2 ** attempt)  # Exponential backoff 5, 10, 20
-                        print(f"  ⚠️ Rate limit hit (429). Retrying in {wait}s...")
-                        time.sleep(wait)
-                        continue
-                
-                print(f"Error during AI analysis: {e}")
-                return {
-                    'success': False,
-                    'error': str(e),
-                    'timestamp': datetime.now().isoformat(),
-                    'analysis_id': f"error_{self.analysis_count}"
-                }
+        try:
+            self.analysis_count += 1
+            analysis_id = f"{self.analysis_mode}_{self.analysis_count}_{int(datetime.now().timestamp())}"
+            
+            print(f"\nAnalyzing market (mode: {self.analysis_mode.upper()}, timeframe: {self.timeframe}, ID: {analysis_id})...")
+            
+            system_prompt = self.get_system_prompt()
+            market_context = self.format_market_context(market_data)
+            
+            full_prompt = f"{system_prompt}\n\n{market_context}"
+            
+            # Get AI response
+            response = self.model.generate_content(full_prompt)
+            analysis_text = response.text
+            
+            # Parse into structured format
+            structured = self.parse_structured_output(analysis_text, market_data, analysis_id)
+            
+            if structured.get('success'):
+                print(f"Analysis complete - Recommendation: {structured['trade_recommendation']}")
+            
+            return structured
+            
+        except Exception as e:
+            print(f"Error during AI analysis: {e}")
+            return {
+                'success': False,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat(),
+                'analysis_id': f"error_{self.analysis_count}"
+            }
     
     def parse_structured_output(self, analysis_text, market_data, analysis_id):
         """Parse AI output with strict field extraction and safety nets"""
@@ -408,7 +544,7 @@ Timestamp: {current['timestamp']}
             emoji = "⏸️"
         
         summary = f"""
-{emoji} XAUUSD Analysis [{analysis['analysis_mode'].upper()}] | Session: {analysis.get('session', 'N/A')}
+{emoji} XAUUSD Analysis [{self.timeframe}] [{analysis['analysis_mode'].upper()}] | Session: {analysis.get('session', 'N/A')}
 {'='*60}
 ID: {analysis['analysis_id']}
 Trade Signal: {trade_rec}
@@ -449,12 +585,7 @@ if __name__ == "__main__":
     print("="*70)
     
     # Test both modes
-    import time
-    for mode in ['intraday', 'scalping']:
-        if mode == 'scalping':
-            print("\nWaiting 15s to respect API rate limits...")
-            time.sleep(15)
-            
+    for mode in ['ultra_scalping', 'scalping', 'intraday', 'swing']:
         print(f"\n{'='*70}")
         print(f"Testing {mode.upper()} mode")
         print('='*70)
