@@ -4,6 +4,7 @@ from datetime import datetime
 import pytz
 import google.generativeai as genai
 from config import *
+from google.api_core import exceptions
 
 class MarketAnalyzer:
     def __init__(self, analysis_mode='intraday', timeframe='M15'):
@@ -13,7 +14,14 @@ class MarketAnalyzer:
             analysis_mode: 'scalping' (M1-M15) or 'intraday' (H1-H4)
             timeframe: 'M1', M3, 'M5', 'M15', M30, 'H1', 'H4', 'D1'
         """
-        genai.configure(api_key=GEMINI_API_KEY)
+        # Setup API keys
+        self.api_keys = globals().get('GEMINI_API_KEYS') or [GEMINI_API_KEY]
+        self.current_key_index = 0
+        
+        # Configure first key
+        if self.api_keys:
+            genai.configure(api_key=self.api_keys[self.current_key_index])
+            
         # Use latest stable model - better structured output adherence
         self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
         self.analysis_count = 0
@@ -352,39 +360,76 @@ Timestamp: {current['timestamp']}
         
         return context
     
+    def _rotate_api_key(self):
+        """Switch to the next available API key"""
+        if not self.api_keys or len(self.api_keys) <= 1:
+            return False
+            
+        self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
+        new_key = self.api_keys[self.current_key_index]
+        mask_key = f"...{new_key[-4:]}" if len(new_key) > 4 else "std"
+        print(f"  ⟳ Rotating API Key to index {self.current_key_index} ({mask_key})")
+        
+        genai.configure(api_key=new_key)
+        # Re-init model just in case it creates local state
+        self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
+        return True
+
     def analyze_market(self, market_data):
         """Send data to AI and get structured analysis"""
-        try:
-            self.analysis_count += 1
-            analysis_id = f"{self.analysis_mode}_{self.analysis_count}_{int(datetime.now().timestamp())}"
-            
-            print(f"\nAnalyzing market (mode: {self.analysis_mode.upper()}, timeframe: {self.timeframe}, ID: {analysis_id})...")
-            
-            system_prompt = self.get_system_prompt()
-            market_context = self.format_market_context(market_data)
-            
-            full_prompt = f"{system_prompt}\n\n{market_context}"
-            
-            # Get AI response
-            response = self.model.generate_content(full_prompt)
-            analysis_text = response.text
-            
-            # Parse into structured format
-            structured = self.parse_structured_output(analysis_text, market_data, analysis_id)
-            
-            if structured.get('success'):
-                print(f"Analysis complete - Recommendation: {structured['trade_recommendation']}")
-            
-            return structured
-            
-        except Exception as e:
-            print(f"Error during AI analysis: {e}")
-            return {
-                'success': False,
-                'error': str(e),
-                'timestamp': datetime.now().isoformat(),
-                'analysis_id': f"error_{self.analysis_count}"
-            }
+        self.analysis_count += 1
+        analysis_id = f"{self.analysis_mode}_{self.analysis_count}_{int(datetime.now().timestamp())}"
+        
+        print(f"\nAnalyzing market (mode: {self.analysis_mode.upper()}, timeframe: {self.timeframe}, ID: {analysis_id})...")
+        
+        system_prompt = self.get_system_prompt()
+        market_context = self.format_market_context(market_data)
+        
+        full_prompt = f"{system_prompt}\n\n{market_context}"
+        
+        # Retry loop for API keys
+        max_attempts = len(self.api_keys) if hasattr(self, 'api_keys') and self.api_keys else 1
+        last_error = None
+        
+        for attempt in range(max_attempts):
+            try:
+                # Get AI response
+                response = self.model.generate_content(full_prompt)
+                analysis_text = response.text
+                
+                # Parse into structured format
+                structured = self.parse_structured_output(analysis_text, market_data, analysis_id)
+                
+                if structured.get('success'):
+                    print(f"Analysis complete - Recommendation: {structured['trade_recommendation']}")
+                
+                return structured
+                
+            except Exception as e:
+                last_error = e
+                # Check for rate limit (429 / ResourceExhausted)
+                is_rate_limit = isinstance(e, exceptions.ResourceExhausted) or "429" in str(e) or "quota" in str(e).lower()
+                
+                if is_rate_limit:
+                    print(f"  ⚠️  API Quota limit hit on current key.")
+                    # Only rotate if we haven't tried all keys yet
+                    if attempt < max_attempts - 1:
+                        if self._rotate_api_key():
+                            print("  Retrying with new key...")
+                            continue
+                
+                # If we get here, it's either not a rate limit, or we ran out of keys
+                print(f"Error during AI analysis: {e}")
+                # We return the failure structure immediately if it's not a rotatable error
+                # Or if we've run out of keys (if it was rotatable)
+                break
+
+        return {
+            'success': False,
+            'error': str(last_error),
+            'timestamp': datetime.now().isoformat(),
+            'analysis_id': f"error_{self.analysis_count}"
+        }
     
     def parse_structured_output(self, analysis_text, market_data, analysis_id):
         """Parse AI output with strict field extraction and safety nets"""

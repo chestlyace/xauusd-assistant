@@ -4,7 +4,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # API Keys
-GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+# API Keys
+# Support for multiple keys (comma-separated) for rotation
+_gemini_keys_env = os.getenv('GEMINI_API_KEY', '')
+GEMINI_API_KEYS = [k.strip() for k in _gemini_keys_env.split(',') if k.strip()]
+GEMINI_API_KEY = GEMINI_API_KEYS[0] if GEMINI_API_KEYS else None
 ALPHA_VANTAGE_KEY = os.getenv('ALPHA_VANTAGE_API_KEY')
 TWELVE_DATA_KEY = os.getenv('TWELVE_DATA_API_KEY')
 FINNHUB_KEY = os.getenv('FINNHUB_API_KEY')
