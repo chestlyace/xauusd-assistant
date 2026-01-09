@@ -231,9 +231,8 @@ class UnifiedTradingBot:
         
         if analysis.get('key_factors'):
             msg += f"\n<b>🔑 Key Factors:</b>\n"
-            for i, factor in enumerate(analysis['key_factors'][:2], 1):
-                factor_text = factor if len(factor) <= 80 else factor[:77] + "..."
-                msg += f"{i}. {factor_text}\n"
+            for i, factor in enumerate(analysis['key_factors'], 1):
+                msg += f"{i}. {factor}\n"
         
         msg += f"\n<code>{analysis['analysis_id']}</code>"
         msg += f"\n<i>{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</i>"
@@ -392,7 +391,9 @@ class UnifiedTradingBot:
                 msg += f"<b>R:R:</b> {rr:.2f} | <b>Risk:</b> ${risk:.2f}\n"
         
         if analysis.get('key_factors'):
-            msg += f"\n<b>Factors:</b> {analysis['key_factors'][0][:60]}...\n"
+            msg += f"\n<b>🔑 Key Factors:</b>\n"
+            for i, factor in enumerate(analysis['key_factors'], 1):
+                msg += f"{i}. {factor}\n"
         
         return msg
     
