@@ -164,7 +164,7 @@ class VisualMarketAnalyzer:
         if self.api_keys:
             genai.configure(api_key=self.api_keys[self.current_key_index])
             
-        self.model = genai.GenerativeModel('gemini-2.0-flash-lite')
+        self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
         
         # Chart generator
         self.chart_gen = ChartSnapshotGenerator()
