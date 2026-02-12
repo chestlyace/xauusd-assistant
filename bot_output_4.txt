@@ -1,0 +1,33 @@
+════════════════════════════════════════════════════════════
+ VISUAL SIGNAL BOT  –  XAUUSD Trading Bible System
+════════════════════════════════════════════════════════════
+ Timeframe : M15
+ Symbol    : XAUUSD
+ Interval  : 900s
+ Min Score : 7/10
+ API Keys  : 2 loaded
+════════════════════════════════════════════════════════════
+
+[05:09:37] Scanning market...
+
+============================================================
+COLLECTING MARKET DATA
+============================================================
+Fetching current XAUUSD price from multiple sources...
+  ✓ Twelve Data: $5056.37
+Fetching news from multiple sources...
+  ✓ Investing.com Gold: 3 articles
+  ✓ FXStreet Gold: 0 articles
+  ✓ Kitco News: 0 articles
+  ✓ Gold.org: 0 articles
+  ✓ Reuters Metals: 0 articles
+  ✓ MarketWatch Gold: 3 articles
+  ✓ Got 1 articles from Finnhub
+  ✓ Got 10 articles from NewsData.io
+Total unique articles: 21
+High relevance articles (score >= 5): 1
+============================================================
+
+  Price: $5056.37
+  Market: unknown  |  Trend: neutral
+❌ Scan error: slice(-80, None, None)

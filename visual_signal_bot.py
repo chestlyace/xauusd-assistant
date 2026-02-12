@@ -23,13 +23,14 @@ from datetime import datetime, timedelta
 from PIL import Image
 
 import google.generativeai as genai
+from google.api_core import exceptions
 from telegram import Bot
 
 # ── Your own modules ──────────────────────────────────────────
 from chart_generator          import ChartGenerator
 from candlestick_bible_detector import CandlestickBibleDetector
 from data_collector           import DataCollector     # your existing collector
-from config                   import GOOGLE_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+from config                   import GEMINI_API_KEY, GEMINI_API_KEYS, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
 
 # ─────────────────────────────────────────────────────────────
 #  CONFIGURATION
@@ -37,7 +38,7 @@ from config                   import GOOGLE_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRA
 
 TIMEFRAME          = 'M15'     # Change to M5, H1, H4, etc.
 SYMBOL             = 'XAUUSD'
-CHECK_INTERVAL_SEC = 120       # How often to scan
+CHECK_INTERVAL_SEC = 900       # How often to scan
 MIN_SIGNAL_QUALITY = 7         # Only send signals scoring 7+ / 10
 RISK_PERCENT       = 5         # % of account risked per trade
 ACCOUNT_SIZE       = 100       # Account size in USD
@@ -51,9 +52,22 @@ class VisualSignalBot:
     """
 
     def __init__(self):
-        # ── AI model ─────────────────────────
-        genai.configure(api_key=GOOGLE_API_KEY)
-        self.model = genai.GenerativeModel('gemini-2.5-flash')
+        # ── Setup API keys and remove duplicates ────────────────
+        raw_keys = GEMINI_API_KEYS if GEMINI_API_KEYS else [GEMINI_API_KEY]
+        self.api_keys = []
+        for k in raw_keys:
+            if k and k not in self.api_keys:
+                clean_k = k.strip().rstrip('>')
+                if clean_k:
+                    self.api_keys.append(clean_k)
+        
+        self.current_key_index = 0
+        
+        # Configure first key
+        if self.api_keys:
+            genai.configure(api_key=self.api_keys[self.current_key_index])
+            
+        self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
 
         # ── Sub-components ────────────────────
         self.collector  = DataCollector()
@@ -76,6 +90,7 @@ class VisualSignalBot:
         print(f' Symbol    : {SYMBOL}')
         print(f' Interval  : {CHECK_INTERVAL_SEC}s')
         print(f' Min Score : {MIN_SIGNAL_QUALITY}/10')
+        print(f' API Keys  : {len(self.api_keys)} loaded')
         print('═' * 60)
 
     # ─────────────────────────────────────────────────────────
@@ -192,19 +207,63 @@ class VisualSignalBot:
 
     async def _ai_analyze(self, market_data, bible, chart_path, current_price) -> dict:
         """
-        Send chart image + structured data to Gemini.
-        Returns a parsed signal dict.
+        Send chart image + structured data to Gemini (with API rotation).
         """
         try:
             chart_image = Image.open(chart_path)
             prompt      = self._build_prompt(market_data, bible, current_price)
-
-            response = self.model.generate_content([prompt, chart_image])
-            return self._parse_response(response.text, current_price, bible)
+            
+            max_attempts = len(self.api_keys)
+            last_error = None
+            
+            for attempt in range(max_attempts):
+                try:
+                    response = self.model.generate_content([prompt, chart_image])
+                    return self._parse_response(response.text, current_price, bible)
+                except Exception as e:
+                    last_error = e
+                    error_msg = str(e).lower()
+                    
+                    # Check for rate limit, quota, invalid keys, or credential fallbacks
+                    is_rotatable_error = (
+                        isinstance(e, exceptions.ResourceExhausted) or 
+                        isinstance(e, exceptions.InvalidArgument) or
+                        isinstance(e, exceptions.Unauthenticated) or
+                        "429" in error_msg or 
+                        "quota" in error_msg or 
+                        "credentials" in error_msg or
+                        "api key not valid" in error_msg or
+                        "invalid" in error_msg
+                    )
+                    
+                    if is_rotatable_error and attempt < max_attempts - 1:
+                        print(f"  ⚠️  API Key {self.current_key_index} failure. Rotating...")
+                        if self._rotate_api_key():
+                            continue
+                    
+                    print(f"  ❌ AI Vision Error: {e}")
+                    break
+            
+            return None
 
         except Exception as e:
-            print(f'  AI error: {e}')
+            print(f'  AI fatal error: {e}')
             return None
+
+    def _rotate_api_key(self):
+        """Switch to the next available API key"""
+        if not self.api_keys or len(self.api_keys) <= 1:
+            return False
+            
+        self.current_key_index = (self.current_key_index + 1) % len(self.api_keys)
+        new_key = self.api_keys[self.current_key_index]
+        
+        mask_key = f"...{new_key[-4:]}" if len(new_key) > 4 else "****"
+        print(f"  ⟳ Rotated to API Key index {self.current_key_index} ({mask_key})")
+        
+        genai.configure(api_key=new_key)
+        self.model = genai.GenerativeModel('gemini-2.5-flash-lite')
+        return True
 
     def _build_prompt(self, market_data, bible, price) -> str:
         """
