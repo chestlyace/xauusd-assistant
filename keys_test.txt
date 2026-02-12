@@ -1,1 +1,0 @@
-dict_keys(['datetime', 'open', 'high', 'low', 'close'])
