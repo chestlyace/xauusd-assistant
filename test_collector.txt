@@ -1,0 +1,15 @@
+🚀 Testing Enhanced Data Collector...
+
+============================================================
+COLLECTING MARKET DATA
+============================================================
+Fetching current XAUUSD price from multiple sources...
+  ✓ Twelve Data: $5054.68
+Fetching news from multiple sources...
+  ✓ Investing.com Gold: 3 articles
+  ✓ FXStreet Gold: 0 articles
+  ✓ Kitco News: 0 articles
+  ✓ Gold.org: 0 articles
+  ✓ Reuters Metals: 0 articles
+  ✓ MarketWatch Gold: 3 articles
+  ✓ Got 1 articles from Finnhub

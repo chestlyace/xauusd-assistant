@@ -507,13 +507,17 @@ class CandlestickBibleDetector:
         records = []
         for c in price_data:
             try:
+                # Twelve Data uses 'datetime', Alpha Vantage uses 'timestamp'
+                ts = c.get('timestamp') or c.get('datetime')
+                if not ts: continue
+                
                 records.append({
-                    'timestamp': pd.to_datetime(c['timestamp']),
-                    'Open':  float(c['open']),
-                    'High':  float(c['high']),
-                    'Low':   float(c['low']),
-                    'Close': float(c['close']),
-                    'Volume': float(c.get('volume', 0))
+                    'timestamp': pd.to_datetime(ts),
+                    'Open':  float(c.get('open') or c.get('Open', 0)),
+                    'High':  float(c.get('high') or c.get('High', 0)),
+                    'Low':   float(c.get('low') or c.get('Low', 0)),
+                    'Close': float(c.get('close') or c.get('Close', 0)),
+                    'Volume': float(c.get('volume') or c.get('Volume', 0))
                 })
             except Exception:
                 continue

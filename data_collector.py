@@ -341,7 +341,9 @@ class DataCollector:
     
     def _calculate_relevance(self, title, description):
         """Calculate relevance score from title and description text"""
-        combined = (title + ' ' + description).lower()
+        safe_title = title if title else ""
+        safe_desc = description if description else ""
+        combined = (safe_title + ' ' + safe_desc).lower()
         
         # High relevance keywords
         high_value_keywords = ['xauusd', 'gold price', 'gold futures', 'gold rally', 
@@ -367,8 +369,11 @@ class DataCollector:
 
     def calculate_relevance_score(self, article):
         """Calculate how relevant an article is to XAUUSD trading"""
-        title = article.get('title', '').lower()
-        description = article.get('description', '').lower()
+        raw_title = article.get('title', '')
+        raw_desc = article.get('description', '')
+        
+        title = (raw_title if raw_title else '').lower()
+        description = (raw_desc if raw_desc else '').lower()
         combined = title + ' ' + description
     
         score = 0

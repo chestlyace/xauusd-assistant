@@ -120,12 +120,15 @@ class VisualSignalBot:
             print('  ⚠️  No market data received')
             return
 
-        price_data    = data['price_history']
+        price_data_raw = data['price_history']
+        # Extract the list of candles correctly
+        price_history_list = price_data_raw.get('history', []) if isinstance(price_data_raw, dict) else price_data_raw
+        
         current_price = data['current_price']['price']
         print(f'  Price: ${current_price:.2f}')
 
         # 2. Detect Bible patterns
-        bible = self.detector.analyze(price_data)
+        bible = self.detector.analyze(price_history_list)
         patterns      = bible.get('patterns', [])
         market_type   = bible.get('market_type', 'unknown')
         trend         = bible.get('trend_direction', 'neutral')
@@ -140,7 +143,7 @@ class VisualSignalBot:
         # 3. Generate chart (with detected patterns highlighted)
         key_levels = {'support': supports, 'resistance': resistances}
         chart_path = self.chart_gen.generate(
-            price_data      = price_data,
+            price_data      = price_history_list,
             timeframe       = TIMEFRAME,
             symbol          = SYMBOL,
             detected_patterns = [
@@ -184,7 +187,7 @@ class VisualSignalBot:
             future_zone = analysis.get('future_zone')
             if future_zone:
                 chart_path = self.chart_gen.generate(
-                    price_data      = price_data,
+                    price_data      = price_history_list,
                     timeframe       = TIMEFRAME,
                     symbol          = SYMBOL,
                     detected_patterns = [
