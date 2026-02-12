@@ -24,7 +24,8 @@ from PIL import Image
 
 import google.generativeai as genai
 from google.api_core import exceptions
-from telegram import Bot
+from telegram import Update, Bot, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # ── Your own modules ──────────────────────────────────────────
 from chart_generator          import ChartGenerator
@@ -80,6 +81,8 @@ class VisualSignalBot:
         self.active_setups     = {}
         self.daily_signals     = 0
         self.daily_pnl         = 0.0
+        self.is_analyzing      = False
+        self.application       = None
 
         os.makedirs('/tmp/charts', exist_ok=True)
 
@@ -98,111 +101,235 @@ class VisualSignalBot:
     # ─────────────────────────────────────────────────────────
 
     async def run(self):
-        """Continuous scanning loop."""
-        await self._send_telegram_text('🤖 *Visual Signal Bot started*\nXAUUSD | Trading Bible System', parse_mode='Markdown')
+        """Start the application and scheduling."""
+        self.application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 
+        # Command Handlers
+        self.application.add_handler(CommandHandler("start", self.cmd_start))
+        self.application.add_handler(CommandHandler("status", self.cmd_status))
+        self.application.add_handler(CommandHandler("m5", self.cmd_m5))
+        self.application.add_handler(CommandHandler("m15", self.cmd_m15))
+        self.application.add_handler(CommandHandler("h1", self.cmd_h1))
+        self.application.add_handler(CommandHandler("h4", self.cmd_h4))
+
+        # Callback Handlers
+        self.application.add_handler(CallbackQueryHandler(self.button_callback))
+
+        # Schedule Auto Analysis
+        job_queue = self.application.job_queue
+        job_queue.run_repeating(
+            self._auto_scan_job,
+            interval=CHECK_INTERVAL_SEC,
+            first=10
+        )
+
+        print(f"✅ Bot starting... monitoring {TIMEFRAME} every {CHECK_INTERVAL_SEC}s")
+        await self._send_telegram_text('🤖 *Visual Signal Bot started*\nXAUUSD | Trading Bible System', parse_mode='Markdown')
+        
+        await self.application.initialize()
+        await self.application.start()
+        await self.application.updater.start_polling(allowed_updates=Update.ALL_TYPES)
+        
+        # Keep running
         while True:
-            try:
-                print(f'\n[{datetime.now().strftime("%H:%M:%S")}] Scanning market...')
-                await self._scan()
-            except Exception as e:
-                print(f'❌ Scan error: {e}')
-            await asyncio.sleep(CHECK_INTERVAL_SEC)
+            await asyncio.sleep(3600)
+
+    async def _auto_scan_job(self, context: ContextTypes.DEFAULT_TYPE):
+        """Job for automated background scanning."""
+        if self.is_analyzing:
+            return
+        print(f'\n[{datetime.now().strftime("%H:%M:%S")}] Auto-scanning market...')
+        await self._scan(timeframe=TIMEFRAME)
+
+    # ─────────────────────────────────────────────────────────
+    #  COMMANDS
+    # ─────────────────────────────────────────────────────────
+
+    async def cmd_start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        """Welcome message with buttons."""
+        keyboard = [
+            [
+                InlineKeyboardButton("Scan M5 📊", callback_data='analyze_M5'),
+                InlineKeyboardButton("Scan M15 📊", callback_data='analyze_M15'),
+            ],
+            [
+                InlineKeyboardButton("Scan H1 📈", callback_data='analyze_H1'),
+                InlineKeyboardButton("Scan H4 📈", callback_data='analyze_H4'),
+            ],
+            [
+                InlineKeyboardButton("📊 Status", callback_data='status'),
+            ]
+        ]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        welcome = (
+            f"🤖 *Visual Signal Bot* — {SYMBOL}\n"
+            f"━━━━━━━━━━━━━━━━━━\n"
+            f"Auto-Monitoring: `{TIMEFRAME}` every `{CHECK_INTERVAL_SEC}s`\n"
+            f"Min Score: `{MIN_SIGNAL_QUALITY}/10`\n\n"
+            f"Use buttons below for manual analysis:"
+        )
+        await update.message.reply_text(welcome, parse_mode='Markdown', reply_markup=reply_markup)
+
+    async def cmd_status(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self._show_status(update)
+
+    async def cmd_m5(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self._manual_scan(update, 'M5')
+
+    async def cmd_m15(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self._manual_scan(update, 'M15')
+
+    async def cmd_h1(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self._manual_scan(update, 'H1')
+
+    async def cmd_h4(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await self._manual_scan(update, 'H4')
+
+    async def button_callback(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
+        query = update.callback_query
+        await query.answer()
+        
+        if query.data.startswith('analyze_'):
+            tf = query.data.replace('analyze_', '')
+            await self._manual_scan(update, tf, is_callback=True)
+        elif query.data == 'status':
+            await self._show_status(update, is_callback=True)
+
+    async def _show_status(self, update, is_callback=False):
+        msg = (
+            f"📊 *Bot Status*\n"
+            f"━━━━━━━━━━━━\n"
+            f"Symbol: `{SYMBOL}`\n"
+            f"Active TF: `{TIMEFRAME}`\n"
+            f"Daily Signals: `{self.daily_signals}`\n"
+            f"Keys Loaded: `{len(self.api_keys)}`"
+        )
+        if is_callback:
+            await update.callback_query.edit_message_text(msg, parse_mode='Markdown')
+        else:
+            await update.message.reply_text(msg, parse_mode='Markdown')
+
+    async def _manual_scan(self, update, timeframe, is_callback=False):
+        """Triggered by a user request."""
+        if self.is_analyzing:
+            msg = "⏳ Analysis already in progress... please wait."
+            if is_callback: await update.callback_query.message.reply_text(msg)
+            else: await update.message.reply_text(msg)
+            return
+
+        status_msg = f"🔄 Starting manual analysis for *{timeframe}*..."
+        if is_callback:
+            msg_obj = await update.callback_query.message.reply_text(status_msg, parse_mode='Markdown')
+        else:
+            msg_obj = await update.message.reply_text(status_msg, parse_mode='Markdown')
+
+        await self._scan(timeframe=timeframe, update=update)
+        await msg_obj.delete()
 
     # ─────────────────────────────────────────────────────────
     #  SCAN
     # ─────────────────────────────────────────────────────────
 
-    async def _scan(self):
-        # 1. Collect data
-        data = self.collector.get_market_data()
-        if not data or not data.get('price_history'):
-            print('  ⚠️  No market data received')
-            return
+    async def _scan(self, timeframe=TIMEFRAME, update=None):
+        self.is_analyzing = True
+        try:
+            # 1. Collect data
+            data = self.collector.get_market_data()
+            if not data or not data.get('price_history'):
+                print('  ⚠️  No market data received')
+                return
 
-        price_data_raw = data['price_history']
-        # Extract the list of candles correctly
-        price_history_list = price_data_raw.get('history', []) if isinstance(price_data_raw, dict) else price_data_raw
-        
-        current_price = data['current_price']['price']
-        print(f'  Price: ${current_price:.2f}')
+            price_data_raw = data['price_history']
+            # Extract the list of candles correctly
+            price_history_list = price_data_raw.get('history', []) if isinstance(price_data_raw, dict) else price_data_raw
+            
+            current_price = data['current_price']['price']
+            print(f'  [{timeframe}] Price: ${current_price:.2f}')
 
-        # 2. Detect Bible patterns
-        bible = self.detector.analyze(price_history_list)
-        patterns      = bible.get('patterns', [])
-        market_type   = bible.get('market_type', 'unknown')
-        trend         = bible.get('trend_direction', 'neutral')
-        supports      = bible.get('supports', [])
-        resistances   = bible.get('resistances', [])
-        last_atr      = bible.get('last_atr', 5)
+            # 2. Detect Bible patterns
+            bible = self.detector.analyze(price_history_list)
+            patterns      = bible.get('patterns', [])
+            market_type   = bible.get('market_type', 'unknown')
+            trend         = bible.get('trend_direction', 'neutral')
+            supports      = bible.get('supports', [])
+            resistances   = bible.get('resistances', [])
+            
+            print(f'  Market: {market_type}  |  Trend: {trend}')
+            if patterns:
+                print(f'  Patterns: {[p.name for p in patterns]}')
+            
+            # 3. Generate chart (with detected patterns highlighted)
+            key_levels = {'support': supports, 'resistance': resistances}
+            chart_path = self.chart_gen.generate(
+                price_data      = price_history_list,
+                timeframe       = timeframe,
+                symbol          = SYMBOL,
+                detected_patterns = [
+                    {'name': p.name, 'direction': p.direction,
+                     'bar_index': p.bar_index, 'price': p.price,
+                     'atr': p.atr}
+                    for p in patterns
+                ],
+                key_levels  = key_levels,
+                future_zone = None
+            )
 
-        print(f'  Market: {market_type}  |  Trend: {trend}')
-        if patterns:
-            print(f'  Patterns: {[p.name for p in patterns]}')
+            if not chart_path:
+                print('  ⚠️  Chart generation failed')
+                return
 
-        # 3. Generate chart (with detected patterns highlighted)
-        key_levels = {'support': supports, 'resistance': resistances}
-        chart_path = self.chart_gen.generate(
-            price_data      = price_history_list,
-            timeframe       = TIMEFRAME,
-            symbol          = SYMBOL,
-            detected_patterns = [
-                {'name': p.name, 'direction': p.direction,
-                 'bar_index': p.bar_index, 'price': p.price,
-                 'atr': p.atr}
-                for p in patterns
-            ],
-            key_levels  = key_levels,
-            future_zone = None   # will add after AI analysis
-        )
+            # 4. Vision AI analysis
+            analysis = await self._ai_analyze(
+                data, bible, chart_path, current_price
+            )
 
-        if not chart_path:
-            print('  ⚠️  Chart generation failed')
-            return
+            if not analysis:
+                print('  ⚠️  AI analysis failed')
+                return
 
-        # 4. Vision AI analysis (data + chart image + Bible knowledge)
-        analysis = await self._ai_analyze(
-            data, bible, chart_path, current_price
-        )
+            signal_type = analysis.get('signal_type', 'NONE')
+            quality     = analysis.get('quality_score', 0)
 
-        if not analysis:
-            print('  ⚠️  AI analysis failed')
-            return
+            print(f'  AI Signal: {signal_type}  |  Quality: {quality}/10')
 
-        signal_type = analysis.get('signal_type', 'NONE')
-        quality     = analysis.get('quality_score', 0)
+            # 5. Handle Results
+            source_tag = " [MANUAL]" if update else ""
+            
+            if signal_type in ('BUY', 'SELL') and (quality >= MIN_SIGNAL_QUALITY or update):
+                await self._send_signal(analysis, chart_path, current_price, timeframe)
 
-        print(f'  AI Signal: {signal_type}  |  Quality: {quality}/10')
-
-        # 5a. IMMEDIATE entry signal
-        if signal_type in ('BUY', 'SELL') and quality >= MIN_SIGNAL_QUALITY:
-            print(f'  🟢 SIGNAL FOUND → sending...')
-            await self._send_signal(analysis, chart_path, current_price)
-
-        # 5b. FUTURE setup prediction (no immediate entry but setup forming)
-        elif signal_type == 'WATCH' or (quality >= 5 and signal_type not in ('NONE',)):
-            print(f'  ⏳ Future setup predicted → updating chart & sending...')
-
-            # Re-generate chart with the future zone highlighted
-            future_zone = analysis.get('future_zone')
-            if future_zone:
-                chart_path = self.chart_gen.generate(
-                    price_data      = price_history_list,
-                    timeframe       = TIMEFRAME,
-                    symbol          = SYMBOL,
-                    detected_patterns = [
-                        {'name': p.name, 'direction': p.direction,
-                         'bar_index': p.bar_index, 'price': p.price,
-                         'atr': p.atr}
-                        for p in patterns
-                    ],
-                    key_levels  = key_levels,
-                    future_zone = future_zone
+            elif signal_type == 'WATCH' or (quality >= 5 and signal_type not in ('NONE',)):
+                future_zone = analysis.get('future_zone')
+                if future_zone:
+                    chart_path = self.chart_gen.generate(
+                        price_data      = price_history_list,
+                        timeframe       = timeframe,
+                        symbol          = SYMBOL,
+                        detected_patterns = [
+                            {'name': p.name, 'direction': p.direction,
+                             'bar_index': p.bar_index, 'price': p.price,
+                             'atr': p.atr}
+                            for p in patterns
+                        ],
+                        key_levels  = key_levels,
+                        future_zone = future_zone
+                    )
+                await self._send_future_setup(analysis, chart_path, current_price, timeframe)
+                
+            elif update:
+                # If manual request but quality too low
+                await self._send_telegram_text(
+                    f"⏸ *Manual Analysis Completed ({timeframe})*\n"
+                    f"Result: `{signal_type}` (Quality `{quality}/10`)\n"
+                    f"Conclusion: No high-probability setup found.",
+                    parse_mode='Markdown'
                 )
-            await self._send_future_setup(analysis, chart_path, current_price)
 
-        else:
-            print(f'  ⏸  No signal (quality too low or neutral)')
+        except Exception as e:
+            print(f'❌ Scan error: {e}')
+        finally:
+            self.is_analyzing = False
 
     # ─────────────────────────────────────────────────────────
     #  VISION AI ANALYSIS
@@ -391,8 +518,9 @@ C) If market is choppy or no clear setup:
     #  TELEGRAM  –  IMMEDIATE SIGNAL
     # ─────────────────────────────────────────────────────────
 
-    async def _send_signal(self, a, chart_path, price):
+    async def _send_signal(self, a, chart_path, price, tf=None):
         """Send a live entry signal with chart image."""
+        if not tf: tf = TIMEFRAME
 
         direction = a.get('direction', '?')
         emoji     = '🟢' if direction == 'BUY' else '🔴'
@@ -415,7 +543,7 @@ C) If market is choppy or no clear setup:
             f"━━━━━━━━━━━━━━━━━━\n"
             f"📐 *Pattern*  : {pattern}\n"
             f"📊 *Quality*  : {quality}/10\n"
-            f"⏱ *Timeframe*: {TIMEFRAME}  |  {entry_type}\n"
+            f"⏱ *Timeframe*: {tf}  |  {entry_type}\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"🎯 *Entry*    : `${entry:.2f}`\n"
             f"🛡 *Stop Loss*: `${sl:.2f}`\n"
@@ -447,8 +575,9 @@ C) If market is choppy or no clear setup:
     #  TELEGRAM  –  FUTURE SETUP
     # ─────────────────────────────────────────────────────────
 
-    async def _send_future_setup(self, a, chart_path, price):
+    async def _send_future_setup(self, a, chart_path, price, tf=None):
         """Send a 'watch for this setup' alert with chart image."""
+        if not tf: tf = TIMEFRAME
 
         direction = a.get('direction', a.get('future_zone', {}).get('direction', '?'))
         emoji     = '⏳'
@@ -461,7 +590,7 @@ C) If market is choppy or no clear setup:
             f"━━━━━━━━━━━━━━━━━━\n"
             f"📐 *Pattern*   : {pattern}\n"
             f"📊 *Quality*   : {quality}/10  (watch, not entry yet)\n"
-            f"⏱ *Timeframe* : {TIMEFRAME}\n"
+            f"⏱ *Timeframe* : {tf}\n"
             f"━━━━━━━━━━━━━━━━━━\n"
             f"📍 *Watch Zone* : {direction}\n"
         )
@@ -502,8 +631,9 @@ C) If market is choppy or no clear setup:
             if len(caption) > 1024:
                 caption = caption[:1020] + '...'
 
+            bot = self.application.bot if self.application else self.telegram
             with open(chart_path, 'rb') as f:
-                await self.telegram.send_photo(
+                await bot.send_photo(
                     chat_id   = TELEGRAM_CHAT_ID,
                     photo     = f,
                     caption   = caption,
@@ -515,7 +645,8 @@ C) If market is choppy or no clear setup:
 
     async def _send_telegram_text(self, text, parse_mode=None):
         try:
-            await self.telegram.send_message(
+            bot = self.application.bot if self.application else self.telegram
+            await bot.send_message(
                 chat_id    = TELEGRAM_CHAT_ID,
                 text       = text,
                 parse_mode = parse_mode

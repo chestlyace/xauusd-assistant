@@ -1,0 +1,28 @@
+════════════════════════════════════════════════════════════
+ VISUAL SIGNAL BOT  –  XAUUSD Trading Bible System
+════════════════════════════════════════════════════════════
+ Timeframe : M15
+ Symbol    : XAUUSD
+ Interval  : 900s
+ Min Score : 7/10
+ API Keys  : 2 loaded
+════════════════════════════════════════════════════════════
+/home/ace/Projects/xauusd-assistant/visual_signal_bot.py:119: PTBUserWarning: No `JobQueue` set up. To use `JobQueue`, you must install PTB via `pip install "python-telegram-bot[job-queue]"`.
+  job_queue = self.application.job_queue
+Traceback (most recent call last):
+  File "/home/ace/Projects/xauusd-assistant/visual_signal_bot.py", line 656, in <module>
+    asyncio.run(bot.run())
+    ~~~~~~~~~~~^^^^^^^^^^^
+  File "/usr/lib64/python3.14/asyncio/runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "/usr/lib64/python3.14/asyncio/runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "/usr/lib64/python3.14/asyncio/base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "/home/ace/Projects/xauusd-assistant/visual_signal_bot.py", line 120, in run
+    job_queue.run_repeating(
+    ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'run_repeating'

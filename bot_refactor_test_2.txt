@@ -1,0 +1,37 @@
+════════════════════════════════════════════════════════════
+ VISUAL SIGNAL BOT  –  XAUUSD Trading Bible System
+════════════════════════════════════════════════════════════
+ Timeframe : M15
+ Symbol    : XAUUSD
+ Interval  : 900s
+ Min Score : 7/10
+ API Keys  : 2 loaded
+════════════════════════════════════════════════════════════
+✅ Bot starting... monitoring M15 every 900s
+
+============================================================
+COLLECTING MARKET DATA
+============================================================
+Fetching current XAUUSD price from multiple sources...
+  ✓ Twelve Data: $5059.25
+Fetching news from multiple sources...
+  ✓ Investing.com Gold: 3 articles
+  ✓ FXStreet Gold: 0 articles
+  ✓ Kitco News: 0 articles
+  ✓ Gold.org: 0 articles
+  ✓ Reuters Metals: 0 articles
+  ✓ MarketWatch Gold: 3 articles
+  ✓ Got 1 articles from Finnhub
+  ✓ Got 10 articles from NewsData.io
+Total unique articles: 21
+High relevance articles (score >= 5): 4
+============================================================
+
+  [H4] Price: $5059.25
+/home/ace/.local/lib/python3.14/site-packages/mplfinance/plotting.py:707: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
+  volumeAxes.set_ylim(vymin,vymax)
+📊 Chart saved → /tmp/charts/chart_XAUUSD_H4_20260212_054221.png
+  ⚠️  API Key 0 failure. Rotating...
+  ⟳ Rotated to API Key index 1 (...yhtY)
+  AI Signal: SELL  |  Quality: 10/10
+Run time of job "_auto_scan_job (trigger: interval[0:15:00], next run at: 2026-02-12 04:57:13 UTC)" was missed by 0:00:18.178718
