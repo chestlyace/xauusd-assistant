@@ -1,0 +1,82 @@
+/home/ace/.local/lib/python3.14/site-packages/mplfinance/plotting.py:707: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
+  volumeAxes.set_ylim(vymin,vymax)
+======================================================================
+VISUAL MARKET ANALYSIS DEMONSTRATION
+======================================================================
+
+============================================================
+COLLECTING MARKET DATA
+============================================================
+Fetching current XAUUSD price from multiple sources...
+  ✓ Twelve Data: $5068.52
+Fetching news from multiple sources...
+  ✓ Investing.com Gold: 0 articles
+  ✓ FXStreet Gold: 0 articles
+  ✓ Kitco News: 0 articles
+  ✓ Gold.org: 0 articles
+  ✓ Reuters Metals: 0 articles
+  ✓ MarketWatch Gold: 0 articles
+Error fetching from NewsAPI: HTTPSConnectionPool(host='newsapi.org', port=443): Max retries exceeded with url: /v2/everything?q=gold+OR+XAUUSD+OR+%22gold+price%22+OR+XAU%2FUSD+OR+%22US+dollar%22+OR+USD+OR+DXY+OR+%22dollar+index%22+OR+%22USD+weakness%22+OR+%22Federal+Reserve%22+OR+Fed+OR+%22interest+rates%22+OR+%22rate+hike%22+OR+%22rate+cut%22+OR+%22monetary+policy%22+OR+%22Treasury+yields%22+OR+%2210-year+yield%22+OR+%22real+yields%22+OR+inflation+OR+CPI+OR+%22core+CPI%22&from=2026-02-11T00%3A31%3A49.378271&to=2026-02-12T00%3A31%3A49.378271&language=en&sortBy=publishedAt&pageSize=20&apiKey=58b1053308f24737b38aa2edd0bc87d6 (Caused by NameResolutionError("HTTPSConnection(host='newsapi.org', port=443): Failed to resolve 'newsapi.org' ([Errno -3] Temporary failure in name resolution)"))
+  Finnhub news error: HTTPSConnectionPool(host='finnhub.io', port=443): Max retries exceeded with url: /api/v1/news?category=forex&token=d557hhpr01qojbij6negd557hhpr01qojbij6nf0 (Caused by NameResolutionError("HTTPSConnection(host='finnhub.io', port=443): Failed to resolve 'finnhub.io' ([Errno -3] Temporary failure in name resolution)"))
+Error fetching from NewsData.io: HTTPSConnectionPool(host='newsdata.io', port=443): Max retries exceeded with url: /api/1/news?apikey=pub_a68802c5812d4577b063d14638267cdc&q=gold+OR+XAUUSD+OR+%22gold+price%22+OR+XAU%2FUSD+OR+%22US+dollar%22+OR+USD+OR+DXY&language=en&category=business (Caused by NameResolutionError("HTTPSConnection(host='newsdata.io', port=443): Failed to resolve 'newsdata.io' ([Errno -3] Temporary failure in name resolution)"))
+Total unique articles: 0
+High relevance articles (score >= 5): 0
+============================================================
+
+✅ Visual Market Analyzer initialized
+   Using: Gemini 2.0 Flash (Vision)
+
+======================================================================
+VISUAL MARKET ANALYSIS - M15
+======================================================================
+1️⃣  Generating chart snapshot...
+📊 Chart saved: /tmp/chart_M15.png
+2️⃣  Creating visual analysis prompt...
+3️⃣  Loading chart image...
+4️⃣  Analyzing chart with AI vision...
+Traceback (most recent call last):
+  File "/home/ace/.local/lib/python3.14/site-packages/google/api_core/grpc_helpers.py", line 65, in error_remapped_callable
+    return callable_(*args, **kwargs)
+  File "/home/ace/.local/lib/python3.14/site-packages/grpc/_channel.py", line 1166, in __call__
+    return _end_unary_response_blocking(state, call, False, None)
+  File "/home/ace/.local/lib/python3.14/site-packages/grpc/_channel.py", line 996, in _end_unary_response_blocking
+    raise _InactiveRpcError(state)  # pytype: disable=not-instantiable
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+grpc._channel._InactiveRpcError: <_InactiveRpcError of RPC that terminated with:
+	status = StatusCode.NOT_FOUND
+	details = "models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods."
+	debug_error_string = "UNKNOWN:Error received from peer ipv4:142.250.80.106:443 {grpc_message:"models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.", grpc_status:5}"
+>
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/ace/Projects/xauusd-assistant/visual_market_analyzer.py", line 481, in <module>
+    analysis = demonstrate_visual_analysis()
+  File "/home/ace/Projects/xauusd-assistant/visual_market_analyzer.py", line 440, in demonstrate_visual_analysis
+    analysis = visual_analyzer.analyze_with_visual(market_data, timeframe='M15')
+  File "/home/ace/Projects/xauusd-assistant/visual_market_analyzer.py", line 192, in analyze_with_visual
+    response = self.model.generate_content([prompt, chart_image])
+  File "/home/ace/.local/lib/python3.14/site-packages/google/generativeai/generative_models.py", line 248, in generate_content
+    response = self._client.generate_content(request)
+  File "/home/ace/.local/lib/python3.14/site-packages/google/ai/generativelanguage_v1beta/services/generative_service/client.py", line 566, in generate_content
+    response = rpc(
+        request,
+    ...<2 lines>...
+        metadata=metadata,
+    )
+  File "/home/ace/.local/lib/python3.14/site-packages/google/api_core/gapic_v1/method.py", line 113, in __call__
+    return wrapped_func(*args, **kwargs)
+  File "/home/ace/.local/lib/python3.14/site-packages/google/api_core/retry.py", line 349, in retry_wrapped_func
+    return retry_target(
+        target,
+    ...<3 lines>...
+        on_error=on_error,
+    )
+  File "/home/ace/.local/lib/python3.14/site-packages/google/api_core/retry.py", line 191, in retry_target
+    return target()
+  File "/home/ace/.local/lib/python3.14/site-packages/google/api_core/timeout.py", line 120, in func_with_timeout
+    return func(*args, **kwargs)
+  File "/home/ace/.local/lib/python3.14/site-packages/google/api_core/grpc_helpers.py", line 67, in error_remapped_callable
+    raise exceptions.from_grpc_error(exc) from exc
+google.api_core.exceptions.NotFound: 404 models/gemini-2.0-flash-exp is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.

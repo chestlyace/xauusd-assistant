@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+    import feedparser; print(feedparser.__version__)
+    ^^^^^^^^^^^^^^^^^
+  File "/home/ace/.local/lib/python3.14/site-packages/feedparser/__init__.py", line 28, in <module>
+    from .api import parse
+  File "/home/ace/.local/lib/python3.14/site-packages/feedparser/api.py", line 35, in <module>
+    from .encodings import convert_to_utf8
+  File "/home/ace/.local/lib/python3.14/site-packages/feedparser/encodings.py", line 29, in <module>
+    import cgi
+ModuleNotFoundError: No module named 'cgi'

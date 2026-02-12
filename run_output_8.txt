@@ -1,0 +1,88 @@
+/home/ace/.local/lib/python3.14/site-packages/mplfinance/plotting.py:707: UserWarning: Attempting to set identical low and high ylims makes transformation singular; automatically expanding.
+  volumeAxes.set_ylim(vymin,vymax)
+======================================================================
+VISUAL MARKET ANALYSIS DEMONSTRATION
+======================================================================
+
+============================================================
+COLLECTING MARKET DATA
+============================================================
+Fetching current XAUUSD price from multiple sources...
+  ✓ Twelve Data: $5058.61
+Fetching news from multiple sources...
+  ✓ Investing.com Gold: 3 articles
+  ✓ FXStreet Gold: 0 articles
+  ✓ Kitco News: 0 articles
+  ✓ Gold.org: 0 articles
+  ✓ Reuters Metals: 0 articles
+  ✓ MarketWatch Gold: 3 articles
+  ✓ Got 1 articles from Finnhub
+Error fetching from NewsData.io: HTTPSConnectionPool(host='newsdata.io', port=443): Read timed out.
+Total unique articles: 11
+High relevance articles (score >= 5): 0
+============================================================
+
+✅ Visual Market Analyzer initialized (3 keys)
+   Using: Gemini 2.0 Flash Lite (Vision)
+
+======================================================================
+VISUAL MARKET ANALYSIS - M15
+======================================================================
+1️⃣  Generating chart snapshot...
+📊 Chart saved: /tmp/chart_M15.png
+2️⃣  Creating visual analysis prompt...
+3️⃣  Loading chart image...
+4️⃣  Analyzing chart with AI vision...
+  ⚠️  API Key 0 failure (ResourceExhausted). Rotating...
+  ⟳ Rotated to API Key index 1 (...w-Qg)
+  ⚠️  API Key 1 failure (ResourceExhausted). Rotating...
+  ⟳ Rotated to API Key index 2 (...BeyY)
+  ❌ AI Vision Error: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+
+❌ Vision Analysis Failed: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+
+======================================================================
+VISUAL ANALYSIS RESULTS
+======================================================================
+
+💰 Current Price: $5058.61
+
+📊 Visual Confidence: 0/10
+📈 Recommendation: ERROR
+
+💡 Key Insight:
+   Vision analysis failed: 400 API key not valid. Please pass a valid API key. [reason: "API_KEY_INVALID"
+domain: "googleapis.com"
+metadata {
+  key: "service"
+  value: "generativelanguage.googleapis.com"
+}
+, locale: "en-US"
+message: "API key not valid. Please pass a valid API key."
+]
+
+⚠️  Warnings:
+   • API Quota exceeded or invalid key after trying all available accounts
+
+======================================================================
+
+✅ Visual analysis demonstration complete!
+
+Chart saved to: /tmp/chart_M15.png
+You can view it to see what the AI analyzed!

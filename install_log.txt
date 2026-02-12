@@ -1,0 +1,2 @@
+Requirement already satisfied: feedparser in /home/ace/.local/lib/python3.14/site-packages (6.0.10)
+Requirement already satisfied: sgmllib3k in /home/ace/.local/lib/python3.14/site-packages (from feedparser) (1.0.0)

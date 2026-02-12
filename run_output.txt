@@ -1,0 +1,31 @@
+======================================================================
+VISUAL MARKET ANALYSIS DEMONSTRATION
+======================================================================
+
+============================================================
+COLLECTING MARKET DATA
+============================================================
+Fetching current XAUUSD price from multiple sources...
+  ✓ Twelve Data: $5068.95
+Fetching news from multiple sources...
+  ✓ Investing.com Gold: 3 articles
+  ✓ FXStreet Gold: 0 articles
+  ✓ Kitco News: 0 articles
+  ✓ Gold.org: 0 articles
+  ✓ Reuters Metals: 0 articles
+  ✓ MarketWatch Gold: 3 articles
+  ✓ Got 1 articles from Finnhub
+  ✓ Got 10 articles from NewsData.io
+Total unique articles: 21
+High relevance articles (score >= 5): 4
+============================================================
+
+Traceback (most recent call last):
+  File "/home/ace/Projects/xauusd-assistant/visual_market_analyzer.py", line 481, in <module>
+    analysis = demonstrate_visual_analysis()
+  File "/home/ace/Projects/xauusd-assistant/visual_market_analyzer.py", line 437, in demonstrate_visual_analysis
+    visual_analyzer = VisualMarketAnalyzer()
+  File "/home/ace/Projects/xauusd-assistant/visual_market_analyzer.py", line 150, in __init__
+    genai.configure(api_key=GOOGLE_API_KEY)
+                            ^^^^^^^^^^^^^^
+NameError: name 'GOOGLE_API_KEY' is not defined. Did you mean: 'GEMINI_API_KEY'?
